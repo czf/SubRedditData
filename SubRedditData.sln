@@ -5,6 +5,12 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JsonToMsSql", "JsonToMsSql\JsonToMsSql.csproj", "{FDD74308-BE8E-47BB-AB8F-AD9E574A3D1A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL", "SQL", "{082F352D-3749-4858-8B72-2CBFB10190AA}"
+	ProjectSection(SolutionItems) = preProject
+		10_Table_Comment.sql = 10_Table_Comment.sql
+		10_Table_Post.sql = 10_Table_Post.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
