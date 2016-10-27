@@ -82,6 +82,8 @@ print(head(commWeekDayHourCount,n=7), row.names=FALSE)
 commWeekDayHourCount <- commWeekDayHourCount[order(commWeekDayHourCount$freq),]
 print(head(commWeekDayHourCount,n=7), row.names=FALSE)
 
+nimbyCount <- length(textData[grep("NIMBies|NIMBY", textData,ignore.case = TRUE)])
+cat("Total comments using Nimby or Nimbies: ", nimbyCount)
 
 textData <- commData$body
 textData = gsub("[[:punct:]]", "", textData)
@@ -105,14 +107,24 @@ names(textData) = NULL
 # Create corpus
 corpus=Corpus(textData)
 
+
 # Convert to lower-case
 corpus=tm_map(corpus,tolower)
 
 # Remove stopwords
 corpus=tm_map(corpus,function(x) removeWords(x,stopwords()))
 
+corpus=tm_map(corpus, stemDocument)
+corpus=tm_map(corpus, stripWhitespace)
 # convert corpus to a Plain Text Document
 corpus=tm_map(corpus,PlainTextDocument)
 col=brewer.pal(10,"Dark2")
 wordcloud(corpus, min.freq=25, scale=c(5,2),rot.per = 0.25,
           random.color=T, max.word=45, random.order=F,colors=col)
+
+
+
+
+
+
+
