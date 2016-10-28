@@ -1,3 +1,12 @@
+---
+title: "Post - July"
+author: "czf"
+date: "October 28, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, comment=NA)
 library(plyr)
 library(RODBC)
 library(ggplot2)
@@ -6,24 +15,30 @@ library(wordcloud)
 library(tm)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
-month <- "August"
-bigQueryLink <- "https://bigquery.cloud.google.com/table/fh-bigquery:reddit_posts.2016_08"
-begin <- "2016-8-01"
-end <- "2016-9-01"
+month <- "July"
+bigQueryLink <- "https://bigquery.cloud.google.com/table/fh-bigquery:reddit_posts.2016_07"
+                                                                        begin <- "2016-7-01"
+end <- "2016-8-01"
+```
+
+### Synopsis 
+This is visualizing data on Posts from the SeattleWA subreddit for the month of `r month`. The data was taken from `r bigQueryLink`
+
+```{r posts}
 postData = sqlQuery(dbhandle, paste('select * from post
  where created_pacific <
-                                    \'',end ,'\'
-                                    and created_pacific >=\'', begin,'\'', sep=""))
+\'',end ,'\'
+and created_pacific >=\'', begin,'\'', sep=""))
+
 postScore <- postData[,"score"]
 numPost<- length(postScore)
 gold <- sum(postData[,"gilded"])
-
 cat("# of posts in " , month ,": ", numPost)
 cat("# gold set to posts:", gold)
 cat("Total post score for posts created in " , month ,": ", sum(postScore))
 cat("Average post score for posts created in " , month ,": ", mean(postScore))
-
-
+```
+```{r category}
 postCategoryCount <- count(postData,"link_flair_text")
 postCategoryCount <- postCategoryCount[order(-postCategoryCount$freq),]
 postCategoryCount$link_flair_text <- factor(postCategoryCount$link_flair_text, levels=postCategoryCount[order(-postCategoryCount$freq),"link_flair_text"])
@@ -47,8 +62,8 @@ ggplot(data=postCategoryCount,
   geom_bar(width=1, stat="identity") +
   labs(x="",y="Percent of Posts", fill="Category", title="Percentage of posts by category") +
   scale_fill_manual(values=rainbow(nrow(postCategoryCount)))
-
-
+```
+```{r domain}
 postDomainCount <- count(postData, "domain")
 cat("Total unique post domains: ", nrow(postDomainCount))
 
@@ -76,7 +91,8 @@ domainPlot <- ggplot(data=head(postDomainCountMean,n=7),
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 domainPlot
-
+```
+```{r Author}
 postAuthorCount <- count(postData,"author")
 
 cat("Total unique post authors: ", nrow(postAuthorCount))
@@ -106,25 +122,40 @@ authorPlot <- ggplot(data=head(postAuthorCountMean,n=7),
 
 authorPlot
 
+```
+```{r psa}
 psaPosts <-postData[grep("^PSA", postData$title),c("title","author","score","created_pacific")]
 psaAuthorCount <- count(psaPosts,"author")
-if(psaAuthorCount==0)
-{
+# if(nrow(psaAuthorCount)==0) {
+#   cat("No PSA posts for ", month)
+# }
+# if(2==1){
+#   cat("Total unique PSA post authors: ", nrow(psaAuthorCount))
+#   psaAuthorSum <- aggregate(score ~ author, psaPosts, sum)
+# psaAuthorSum <- psaAuthorSum[order(-psaAuthorSum$score),]
+# psaAuthorCountSum <- merge(psaAuthorCount, psaAuthorSum)
+# psaAuthorScoreMean <- aggregate( score ~ author,psaPosts , mean)
+# names(psaAuthorScoreMean)[2]="mean_score"
+# psaAuthorScoreMean <- psaAuthorScoreMean[order(-psaAuthorScoreMean$mean_score),]
+# psaAuthorCountMean <- merge(psaAuthorScoreMean,psaAuthorCount)
+# psaAuthorCountMean <- psaAuthorCountMean[order(-psaAuthorCountMean$mean_score),]
+# }
+if(nrow(psaAuthorCount)==0) {
   cat("No PSA posts for ", month)
-}else
-{
+}
+if (FALSE){
   cat("Total unique PSA post authors: ", nrow(psaAuthorCount))
-  
+
   psaAuthorSum <- aggregate(score ~ author, psaPosts, sum)
   psaAuthorSum <- psaAuthorSum[order(-psaAuthorSum$score),]
-  
+
   psaAuthorCountSum <- merge(psaAuthorCount, psaAuthorSum)
   psaAuthorScoreMean <- aggregate( score ~ author,psaPosts , mean)
   names(psaAuthorScoreMean)[2]="mean_score"
   psaAuthorScoreMean <- psaAuthorScoreMean[order(-psaAuthorScoreMean$mean_score),]
   psaAuthorCountMean <- merge(psaAuthorScoreMean,psaAuthorCount)
   psaAuthorCountMean <- psaAuthorCountMean[order(-psaAuthorCountMean$mean_score),]
-  
+
   print("PSA Authors with highest mean post score and their frequency.")
   print(head(psaAuthorCountMean, n=7), row.names=FALSE)
   if(nrow(psaAuthorCountMean) >5){
@@ -133,7 +164,8 @@ if(psaAuthorCount==0)
     print(head(psaAuthorCountMean, n=7), row.names=FALSE)
   }
 }
-
+```
+```{r hour}
 postData[,"created_pacific_weekday"] <- strftime(postData[,"created_pacific"],"%A")
 postData[,"created_pacific_weekday"] <- factor(postData[,"created_pacific_weekday"], levels = c("Sunday","Monday","Tuesday","Wednesday", "Thursday", "Friday", "Saturday"))
 postData[,"created_pacific_hour"] <- strptime(postData[,"created_pacific"],"%Y-%m-%d %H:%M:%S")$hour
@@ -147,7 +179,8 @@ postHourCount <- count(postData,"created_pacific_hour")
 postHourCount <- postHourCount[order(-postHourCount$freq),]
 print("Total posts created by hour")
 print(head(postHourCount,n=7),row.names=FALSE)
-
+```
+```{r weekday}
 postWeekDayScore <- count(postData,"created_pacific_weekday","score")
 names(postWeekDayScore)[2] = "score"
 postWeekDayScore <- postWeekDayScore[order(-postWeekDayScore$score),]
@@ -200,3 +233,8 @@ p = ggplot(data=postWeekDayCount,
   scale_fill_manual(values=cbPalette)
 
 p
+
+```
+
+
+
