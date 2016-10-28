@@ -1,5 +1,10 @@
+library(plyr)
 library(RODBC)
 library(ggplot2)
+require(devtools)
+library("wordcloud")
+library(tm)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
 post = sqlQuery(dbhandle, 'select * from post')
 
@@ -86,6 +91,7 @@ if(nrow(psaAuthorCountMean) >5){
 }
 
 julyData[,"created_pacific_weekday"] <- strftime(julyData[,"created_pacific"],"%A")
+julyData[,"created_pacific_weekday"] <- factor(julyData[,"created_pacific_weekday"], levels = c("Sunday","Monday","Tuesday","Wednesday", "Thursday", "Friday", "Saturday"))
 julyData[,"created_pacific_hour"] <- strptime(julyData[,"created_pacific"],"%Y-%m-%d %H:%M:%S")$hour
 postHourScore <- count(julyData,"created_pacific_hour","score")
 names(postHourScore)[2] = "score"
@@ -111,7 +117,7 @@ print(head(postWeekDayCount,n=7),row.names=FALSE)
 
 
 postWeekDayHourCount <- count(julyData,c("created_pacific_weekday","created_pacific_hour"))
-hours <- seq(1,24)
+hours <- seq(0,23)
 w<- weekdays(seq(Sys.Date(),by=1,len=7))
 hourw <- merge(w,hours)
 names(hourw) = c("created_pacific_weekday","created_pacific_hour")
