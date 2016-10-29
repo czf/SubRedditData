@@ -4,6 +4,9 @@ library(ggplot2)
 require(devtools)
 library(wordcloud)
 library(tm)
+begin <- "2016-7-01"
+end <- "2016-8-01"
+month <-"july"
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
@@ -14,7 +17,7 @@ inner join post on comment.link_id = post.name
                 where comment.created_pacific <
 \'',end ,'\'
 and comment.created_pacific >=\'', begin,'\'', sep=""))
-month <-"july"
+
 commScore <- commData[,"score"]
 
 
@@ -130,6 +133,11 @@ textData <- commData$body
 nimbyCount <- length(textData[grep("NIMBies|NIMBY", textData,ignore.case = TRUE)])
 cat("Total comments using 'Nimby' or 'Nimbies': ", nimbyCount)
 
+deletedCount <- length(textData[grep("^\\[deleted\\]", textData,ignore.case = TRUE)])
+removedCount <- length(textData[grep("^\\[removed\\]", textData,ignore.case = TRUE)])
+
+cat("Total comments deleted by user:", deletedCount )
+cat("Total comments removed by mod:", removedCount )
 
 textData = gsub("[[:punct:]]", "", textData)
 textData = gsub("[[:digit:]]", "", textData)

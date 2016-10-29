@@ -150,7 +150,13 @@ textData <- commData$body
 nimbyCount <- length(textData[grep("NIMBies|NIMBY", textData,ignore.case = TRUE)])
 cat("Total comments using 'Nimby' or 'Nimbies': ", nimbyCount)
 ```
+```{r gone}
+deletedCount <- length(textData[grep("^\\[deleted\\]", textData,ignore.case = TRUE)])
+removedCount <- length(textData[grep("^\\[removed\\]", textData,ignore.case = TRUE)])
 
+cat("Total comments deleted by user:", deletedCount )
+cat("Total comments removed by mod:", removedCount )
+```
 
 
 ##Comment word cloud
