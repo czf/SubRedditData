@@ -1,9 +1,28 @@
 ---
-title: "Post - July"
-author: "czf"
-date: "October 28, 2016"
 output: html_document
+params: 
+  set_month: "Month"
+  set_rundate: "(month name) dd, yyyy"
+  set_tableNameMonth: "YYYY_MM"
+  set_dateStartSql: "YYYY-MM-DD"
+  set_dateEndSql: "YYYY-MM-DD"
+
+title: '`r paste("Post - ", params$set_month)`'
+author: "czf"
+date: '`r params$set_rundate`'
 ---
+
+<!--
+http://www.rforge.net/doc/packages/markdown/rpubsUpload.html
+
+Rscript.exe -e "Sys.setenv(RSTUDIO_PANDOC='D:/Program Files/RStudio/bin/pandoc')" 
+
+-e "rmarkdown::render('D:/dev/solutions/SubRedditData/r/Post.Rmd', params = list( set_month = 'September', set_rundate ='January 01, 2017', set_tableNameMonth='2016_09', set_dateStartSql = '2016-09-01', set_dateEndSql='2016-10-01'))" 
+
+
+-e "rmarkdown::render('D:/dev/solutions/SubRedditData/r/Post.Rmd', params = list( set_month = 'November', set_rundate ='Febuary 22, 2017', set_tableNameMonth='2016_11', set_dateStartSql = '2016-11-01', set_dateEndSql='2016-12-01'))" 
+
+-->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, comment=NA)
@@ -15,10 +34,11 @@ library(wordcloud)
 library(tm)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
-month <- "July"
-bigQueryLink <- "https://bigquery.cloud.google.com/table/fh-bigquery:reddit_posts.2016_07"
-                                                                        begin <- "2016-7-01"
-end <- "2016-8-01"
+month <- params$set_month
+bigQueryLink <- paste("https://bigquery.cloud.google.com/table/fh-bigquery:reddit_posts.",
+                    params$set_tableNameMonth, sep='')
+                    begin <- params$set_dateStartSql
+end <- params$set_dateEndSql
 ```
 
 ### Synopsis 
@@ -141,9 +161,9 @@ psaAuthorCount <- count(psaPosts,"author")
 # psaAuthorCountMean <- psaAuthorCountMean[order(-psaAuthorCountMean$mean_score),]
 # }
 if(nrow(psaAuthorCount)==0) {
-  cat("No PSA posts for ", month)
+  print(paste("No PSA posts for ", month))
 }
-if (FALSE){
+if (nrow(psaAuthorCount)>1){
   cat("Total unique PSA post authors: ", nrow(psaAuthorCount))
 
   psaAuthorSum <- aggregate(score ~ author, psaPosts, sum)

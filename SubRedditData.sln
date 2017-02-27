@@ -11,6 +11,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQL", "SQL", "{082F352D-374
 		10_Table_Post.sql = 10_Table_Post.sql
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BigQuery", "BigQuery", "{E654204A-EA3E-4336-B3C7-B6792513DBEA}"
+	ProjectSection(SolutionItems) = preProject
+		Sample_Quantile.sql = Sample_Quantile.sql
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigQueryExecute", "BigQueryExecute\BigQueryExecute.csproj", "{E258A968-48BD-4587-998A-48F844DA036E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +28,15 @@ Global
 		{FDD74308-BE8E-47BB-AB8F-AD9E574A3D1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDD74308-BE8E-47BB-AB8F-AD9E574A3D1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDD74308-BE8E-47BB-AB8F-AD9E574A3D1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E258A968-48BD-4587-998A-48F844DA036E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E258A968-48BD-4587-998A-48F844DA036E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E258A968-48BD-4587-998A-48F844DA036E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E258A968-48BD-4587-998A-48F844DA036E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E654204A-EA3E-4336-B3C7-B6792513DBEA} = {082F352D-3749-4858-8B72-2CBFB10190AA}
 	EndGlobalSection
 EndGlobal

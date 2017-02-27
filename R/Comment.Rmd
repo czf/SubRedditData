@@ -1,7 +1,7 @@
 ---
-title: "Comment - August"
+title: "Comment - December"
 author: "czf"
-date: "October 28, 2016"
+date: "Febuary 26, 2017"
 output: html_document
 ---
 
@@ -14,10 +14,11 @@ library(ggplot2)
 require(devtools)
 library(wordcloud)
 library(tm)
-month <-"August"
-bigQueryLink <-"https://bigquery.cloud.google.com/table/fh-bigquery:reddit_comments.2016_08"
-                                                                        begin <- "2016-8-01"
-end <- "2016-9-01"
+
+month <-"December"
+bigQueryLink <-"https://bigquery.cloud.google.com/table/fh-bigquery:reddit_comments.2016_12"
+                                                                        begin <- "2016-12-01"
+end <- "2017-01-01"
 
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -150,6 +151,12 @@ textData <- commData$body
 nimbyCount <- length(textData[grep("NIMBies|NIMBY", textData,ignore.case = TRUE)])
 cat("Total comments using 'Nimby' or 'Nimbies': ", nimbyCount)
 ```
+```{r trump}
+trumpCount <- length(textData[grep("trump", textData,ignore.case = TRUE)])
+cat("Total comments using 'Trump': ", trumpCount)
+```
+
+
 ```{r gone}
 deletedCount <- length(textData[grep("^\\[deleted\\]", textData,ignore.case = TRUE)])
 removedCount <- length(textData[grep("^\\[removed\\]", textData,ignore.case = TRUE)])
@@ -187,7 +194,25 @@ corpus=Corpus(VectorSource(textData))
 corpus=tm_map(corpus,tolower)
 
 # Remove stopwords
-corpus=tm_map(corpus,function(x) removeWords(x,stopwords()))
+corpus=tm_map(corpus,function(x) removeWords(x,
+                                             c(stopwords(),
+                                               "can",
+                                               "like",
+                                               "get",
+                                               "ive",
+                                               "also",
+                                               "got",
+                                               "cant",
+                                               "doesnt",
+                                               "see",
+                                               "dont",
+                                               "youre",
+                                               "thats",
+                                               "lot",
+                                               "sub",
+                                               "theyre",
+                                               "theres",
+                                               "isnt")))
 
 corpus=tm_map(corpus, stemDocument)
 corpus=tm_map(corpus, stripWhitespace)
