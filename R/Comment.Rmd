@@ -56,9 +56,10 @@ names(sumAuthorScore)[2] = "total_score"
 commAuthorData <- merge(merge(commAuthorCount, meanAuthorScore),sumAuthorScore)
 commAuthorData <-commAuthorData[order(-commAuthorData$freq,-commAuthorData$mean_score),]
 print("most frequent commentors, their avg and total score")
-print(head(commAuthorData, n=7), row.names=FALSE)
-authorPlot <- ggplot(data=head(commAuthorData,n=7), 
-                     aes(x=author,y=freq, fill=cbPalette[1-7])) +
+headCommAuthorCount <- head(commAuthorData, n=7)[head(commAuthorData, n=7)$author != '[deleted]',]
+print(headCommAuthorCount, row.names=FALSE)
+authorPlot <- ggplot(data=headCommAuthorCount, 
+                     aes(x=author,y=freq, fill=cbPalette[1:6])) +
   geom_bar(width=1,stat="identity") +
   guides(fill=FALSE) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -147,6 +148,7 @@ p = ggplot(data=commWeekDayCount,
 p
 ```
 ```{r nimby}
+
 textData <- commData$body
 nimbyCount <- length(textData[grep("NIMBies|NIMBY", textData,ignore.case = TRUE)])
 cat("Total comments using 'Nimby' or 'Nimbies': ", nimbyCount)
@@ -160,7 +162,9 @@ cat("Total comments using 'Trump': ", trumpCount)
 ```{r gone}
 deletedCount <- length(textData[grep("^\\[deleted\\]", textData,ignore.case = TRUE)])
 removedCount <- length(textData[grep("^\\[removed\\]", textData,ignore.case = TRUE)])
+deletedAccountCount <- nrow(commData[commData$author == '[deleted]' & (commData$body != "[deleted]"  & commData$body != "[removed]"),c("author", "body")])
 
+cat("Total comments made by an account that has since been deleted:", deletedAccountCount)
 cat("Total comments deleted by user:", deletedCount )
 cat("Total comments removed by mod:", removedCount )
 ```
@@ -185,7 +189,6 @@ textData = sapply(textData, try.error)
 textData = textData[!is.na(textData)]
 names(textData) = NULL
 
-
 # Create corpus
 corpus=Corpus(VectorSource(textData))
 
@@ -196,6 +199,7 @@ corpus=tm_map(corpus,tolower)
 # Remove stopwords
 corpus=tm_map(corpus,function(x) removeWords(x,
                                              c(stopwords(),
+                                               "delet",
                                                "can",
                                                "like",
                                                "get",
