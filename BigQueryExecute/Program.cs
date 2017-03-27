@@ -18,8 +18,9 @@ namespace BigQueryExecute
         public static void Main(string[] args)
         {
             //format should be YYMM-comments.json"
-            string fileName = "1701-comments.json";
-            string query = @"SELECT * FROM `fh-bigquery.reddit_comments.2017_01` WHERE subreddit = 'SeattleWA'";
+            string dbDate = "17_02";
+            string fileName = $"{dbDate.Replace("_","")}-comments.json";
+            string query = $@"SELECT * FROM `fh-bigquery.reddit_comments.20{dbDate}` WHERE subreddit = 'SeattleWA'";
 
 
             BigQueryClient client = BigQueryClient.Create("aaaa-153204");
@@ -93,8 +94,8 @@ namespace BigQueryExecute
                 //);
             }
             System.IO.File.WriteAllLines(@"D:\dev\data\comments\" + fileName, rows);
-               
-            
+
+            Console.WriteLine("Complete");
             
             Console.ReadLine();
         }

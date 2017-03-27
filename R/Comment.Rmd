@@ -1,10 +1,14 @@
 ---
-title: "Comment - December"
+title: "Comment - January"
 author: "czf"
-date: "Febuary 26, 2017"
+date: "March 24, 2017"
 output: html_document
 ---
+<!---
 
+"word counts" using library(qdap) and the wc() function
+wc(textData)
+-->
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, comment=NA)
@@ -15,10 +19,10 @@ require(devtools)
 library(wordcloud)
 library(tm)
 
-month <-"December"
-bigQueryLink <-"https://bigquery.cloud.google.com/table/fh-bigquery:reddit_comments.2016_12"
-                                                                        begin <- "2016-12-01"
-end <- "2017-01-01"
+month <-"January"
+bigQueryLink <-"https://bigquery.cloud.google.com/table/fh-bigquery:reddit_comments.2017_01"
+                                                                        begin <- "2017-01-01"
+end <- "2017-02-01"
 
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -26,7 +30,7 @@ dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;
 commData <- sqlQuery(dbhandle, paste('select comment.*, post.domain, post.author as \'post_author\' 
 , post.link_flair_text 
 from comment
-inner join post on comment.link_id = post.name
+inner join post on replace(comment.link_id,\'t3_\',\'\') = post.id
                 where comment.created_pacific <
 \'',end ,'\'
 and comment.created_pacific >=\'', begin,'\'', sep=""))
@@ -157,6 +161,13 @@ cat("Total comments using 'Nimby' or 'Nimbies': ", nimbyCount)
 trumpCount <- length(textData[grep("trump", textData,ignore.case = TRUE)])
 cat("Total comments using 'Trump': ", trumpCount)
 ```
+```{r tacotime}
+
+tacoCount <- length(textData[grep("\\btaco *time[s]?(nw)?\\b", textData,ignore.case = TRUE)])
+cat("Total comments using 'tacotime(s)' or 'tacotime(s)nw' or 'taco time(s)' or 'taco time(s)nw': ", tacoCount)
+
+```
+
 
 
 ```{r gone}
@@ -199,7 +210,7 @@ corpus=tm_map(corpus,tolower)
 # Remove stopwords
 corpus=tm_map(corpus,function(x) removeWords(x,
                                              c(stopwords(),
-                                               "delet",
+                                               "deleted",
                                                "can",
                                                "like",
                                                "get",

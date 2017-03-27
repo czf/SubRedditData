@@ -128,14 +128,17 @@ postAuthorCountMean <- merge(postAuthorScoreMean,postAuthorCount)
 postAuthorCountMean <- postAuthorCountMean[order(-postAuthorCountMean$mean_score),]
 
 print("Authors with highest mean post score and their frequency.")
-print(head(postAuthorCountMean, n=7), row.names=FALSE)
+print(head(postAuthorCountMean, n=6)[head(postAuthorCountMean, n=6)$author != '[deleted]',], row.names=FALSE)
 
 print("Authors with highest post frequency and their mean score.")
 postAuthorCountMean <- postAuthorCountMean[order(-postAuthorCountMean$freq),]
-print(head(postAuthorCountMean, n=7), row.names=FALSE)
 
-authorPlot <- ggplot(data=head(postAuthorCountMean,n=7), 
-                     aes(x=author,y=freq, fill=cbPalette[1-7])) +
+head_postAuthorCountMean <- head(postAuthorCountMean, n=7)[head(postAuthorCountMean, n=7)$author != '[deleted]',]
+print(head_postAuthorCountMean, row.names=FALSE)
+
+authorPlot <- ggplot(data=head_postAuthorCountMean, 
+
+                     aes(x=author,y=freq, fill=cbPalette[1:6])) +
   geom_bar(width=1,stat="identity") +
   guides(fill=FALSE) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))

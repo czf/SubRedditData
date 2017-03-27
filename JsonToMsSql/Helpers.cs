@@ -21,12 +21,13 @@ namespace JsonToMsSql
             var epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return epoch.AddSeconds(unixTime);
         }
+
         public static DateTime convertToDateTime(object rowElement)
         {
             long utcEpoch = long.Parse((string)rowElement);
 
             DateTime utcDateTime = FromUnixTime(utcEpoch);
-            return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local);
+            return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local); //reminder that this handles running during daylight savings with times from outside daylight savings.
         }
 
         public static void ToMSSql(DataSet ds)
