@@ -167,7 +167,7 @@ if(nrow(psaAuthorCount)==0) {
   print(paste("No PSA posts for ", month))
 }
 if (nrow(psaAuthorCount)>1){
-  cat("Total unique PSA post authors: ", nrow(psaAuthorCount))
+  cat("Total unique PSA post authors: ", nrow(psaAuthorCount),"\n")
 
   psaAuthorSum <- aggregate(score ~ author, psaPosts, sum)
   psaAuthorSum <- psaAuthorSum[order(-psaAuthorSum$score),]

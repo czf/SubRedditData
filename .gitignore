@@ -242,3 +242,10 @@ ModelManifest.xml
 .fake/
 *.dcf
 *.Rhistory
+*.RData
+R/TacoTimeComments_cache/html/charts_1a811d92d56ae8d5d4d168299db48f1f.rdb
+R/TacoTimeComments_cache/html/charts_1a811d92d56ae8d5d4d168299db48f1f.rdx
+*.rdb
+*.rdx
+R/TacoTimeComments_cache/html/__packages
+R/TacoTimeComments_files/figure-html/charts-1.png

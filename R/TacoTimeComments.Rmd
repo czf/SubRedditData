@@ -1,0 +1,74 @@
+---
+title: "TacoTime Comments"
+author: "czf"
+date: "May 18, 2017"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, comment=NA, cache=TRUE)
+library(plyr)
+library(RODBC)
+library(ggplot2)
+require(devtools)
+library(knitr)
+#library(dplyr)
+end <- "2017-04-01"
+
+bigQueryLink <-"https://bigquery.cloud.google.com/table/fh-bigquery:reddit_comments"
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
+commData <- sqlQuery(dbhandle, paste('select comment.*, post.domain, post.author as \'post_author\'
+, post.link_flair_text 
+from comment
+inner join post on replace(comment.link_id,\'t3_\',\'\') = post.id
+               where 
+(body like \'%taco time%\' or body like \'%tacotime%\') and 
+comment.created_pacific < \'', end , '\'', sep=""))
+nrow(commData)
+```
+
+### Synopsis 
+This is visualizing comment references to TacoTimeNW and TacoTime from the SeattleWA subreddit.  The data was taken from various locations(`r bigQueryLink`)
+
+```{r comments}
+commScore <- commData[,"score"]
+numComm <-NROW(commData)
+
+gold <- sum(commData[,"gilded"])
+commAuthorCount <- count(commData,"author")
+
+cat("# of TacoTime comments:", numComm) 
+cat("# gold earned from TacoTime:", gold)
+cat("Total TacoTime score for comments: ", sum(commScore))
+cat("Total # of TacoTime comment Authors: ", nrow(commAuthorCount))
+#cat("Average TacoTime score for comments: ", mean(commScore))
+
+
+```
+
+```{r charts}
+knitr::opts_chunk$set(echo=FALSE, comment=NA, cache=FALSE)
+countByYearMonth <- aggregate(x=commData, by = list(year =as.POSIXlt(commData$created_pacific)$year+1900, month = months(as.POSIXlt(commData$created_pacific))), FUN = length)
+
+countByYearMonthSort <- 
+  countByYearMonth[order(countByYearMonth$year, match(countByYearMonth$month, month.name  )),c("year", "month", "body")]
+
+names(countByYearMonthSort) <-
+  c("year", "month","count")
+
+yearMonth <-paste(countByYearMonthSort$year, countByYearMonthSort$month)
+
+countByYearMonthSort$YearMonth <- factor(yearMonth, levels=yearMonth)
+
+ggplot(data = countByYearMonthSort, aes(x=YearMonth, y=count, fill=cbPalette[1:7])) + geom_bar(width=1, stat="identity") + guides(fill=FALSE) + theme(axis.text.x = element_text(angle = 45, hjust = 1)) + xlab("Year Month") + ylab("Total Comments")
+
+
+
+```
+
+```{r table, echo=FALSE, results = 'asis'}
+
+kable(commAuthorCount, col.names =colnames(commAuthorCount) ,caption = "All Comment Authors")
+
+```
+

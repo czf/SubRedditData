@@ -1,7 +1,7 @@
 ---
-title: "Comment - January"
+title: "Comment - March"
 author: "czf"
-date: "March 24, 2017"
+date: "May 18, 2017"
 output: html_document
 ---
 <!---
@@ -19,10 +19,10 @@ require(devtools)
 library(wordcloud)
 library(tm)
 
-month <-"January"
-bigQueryLink <-"https://bigquery.cloud.google.com/table/fh-bigquery:reddit_comments.2017_01"
-                                                                        begin <- "2017-01-01"
-end <- "2017-02-01"
+month <-"March"
+bigQueryLink <-"https://bigquery.cloud.google.com/table/fh-bigquery:reddit_comments.2017_03"
+                                                                        begin <- "2017-03-01"
+end <- "2017-04-01"
 
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -180,7 +180,6 @@ cat("Total comments deleted by user:", deletedCount )
 cat("Total comments removed by mod:", removedCount )
 ```
 
-
 ##Comment word cloud
 ```{r wordcloud, fig.height=8, fig.width=8}
 textData = gsub("[[:punct:]]", "", textData)
@@ -238,4 +237,3 @@ col=brewer.pal(8,"Dark2")
 wordcloud(corpus, min.freq=25, scale=c(5,2),rot.per = 0.25,
           random.color=T, max.word=45, random.order=F,colors=col)
 ```
-
