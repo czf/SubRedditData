@@ -1,0 +1,26 @@
+library(RODBC)
+library(ggplot2)
+library(plyr)
+
+bigQueryLink <-"https://bigquery.cloud.google.com/dataset/fh-bigquery:reddit_comments"
+begin <- "2017-01-01"
+end <- "2017-03-01"
+
+dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
+
+commData <- sqlQuery(dbhandle, paste('select comment.*, post.domain, post.author as \'post_author\' 
+, post.link_flair_text 
+from comment
+inner join post on replace(comment.link_id,\'t3_\',\'\') = post.id
+                where comment.created_pacific <
+\'',end ,'\'
+and comment.created_pacific >=\'', begin,'\'', sep=""))
+
+
+```{r comments}
+numComm <-NROW(commData)
+cat("# of comments: ", numComm) 
+gold <- sum(commData[,"gilded"])
+cat("# gold set to comments:", gold)
+commData$YearMonth <- format(as.Date(commData$created_pacific,"America/Los_Angeles"), "%Y-%m")
+commCountPerMonth <- count(commData,c( "YearMonth"))
