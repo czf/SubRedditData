@@ -13,7 +13,7 @@ dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;
 commData <- sqlQuery(dbhandle, paste('select comment.*, post.domain, post.author as \'post_author\' 
 , post.link_flair_text 
 from comment
-inner join post on comment.link_id = post.name
+inner join post on replace(comment.link_id,\'t3_\',\'\') = post.id
                 where comment.created_pacific <
 \'',end ,'\'
 and comment.created_pacific >=\'', begin,'\'', sep=""))
