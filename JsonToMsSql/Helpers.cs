@@ -30,16 +30,17 @@ namespace JsonToMsSql
             return TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, TimeZoneInfo.Local); //reminder that this handles running during daylight savings with times from outside daylight savings.
         }
 
-        public static void ToMSSql(DataSet ds)
+        public static void ToMSSql(DataSet ds, string databaseName = "SeattleWA_subreddit")
         {
-            using (SqlConnection conn = new SqlConnection("Data Source=DRTUJK\\SQLEXPRESS;Database=SeattleWA_subreddit;Integrated Security=True;"))
+            using (SqlConnection conn = new SqlConnection($"Data Source=DRTUJK\\SQLEXPRESS;Database={databaseName};Integrated Security=True;"))
             {
                 conn.Open();
+                conn.
                 foreach (DataTable dt in ds.Tables)
                 {
                     Console.WriteLine("Bulk Insert Started table:" + dt.TableName);
                     SqlBulkCopy bulk = new SqlBulkCopy(conn);
-
+                    bulk.BulkCopyTimeout = 360;
                     bulk.DestinationTableName = "[" + dt.TableName.Replace('{', ' ').Replace('}', ' ') + "]";
                     bulk.WriteToServer(dt);
                     Console.WriteLine("Bulk Insert completed table:" + dt.TableName);
