@@ -18,6 +18,9 @@ namespace JsonToMsSql
         {
             PostsToSQL.Main(null);
             CommentsToSQL.Main(null);
+            Console.WriteLine("***************************************");
+            Console.WriteLine("\t\t\t\tComplete\t\t\t");
+            Console.WriteLine("***************************************");
             Console.ReadLine();
         }
     }

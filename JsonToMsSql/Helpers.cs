@@ -35,7 +35,7 @@ namespace JsonToMsSql
             using (SqlConnection conn = new SqlConnection($"Data Source=DRTUJK\\SQLEXPRESS;Database={databaseName};Integrated Security=True;"))
             {
                 conn.Open();
-                conn.
+
                 foreach (DataTable dt in ds.Tables)
                 {
                     Console.WriteLine("Bulk Insert Started table:" + dt.TableName);
