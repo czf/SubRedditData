@@ -1,26 +1,78 @@
 library(RODBC)
 library(ggplot2)
 library(plyr)
+library(gtable)
+library(grid)
 
 bigQueryLink <-"https://bigquery.cloud.google.com/dataset/fh-bigquery:reddit_comments"
 begin <- "2017-01-01"
 end <- "2017-03-01"
 
-dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
+seattleWA_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
+seattle_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=Seattle_subreddit;trusted_connection=true')
 
-commData <- sqlQuery(dbhandle, paste('select comment.*, post.domain, post.author as \'post_author\' 
+query <- paste('select comment.*, post.domain, post.author as \'post_author\' 
 , post.link_flair_text 
 from comment
 inner join post on replace(comment.link_id,\'t3_\',\'\') = post.id
                 where comment.created_pacific <
 \'',end ,'\'
-and comment.created_pacific >=\'', begin,'\'', sep=""))
+and comment.created_pacific >=\'', begin,'\'', sep="")
 
+commData <- sqlQuery(seattleWA_dbhandle, query)
+seattle_commData <- sqlQuery(seattle_dbhandle, query)
+
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 ```{r comments}
 numComm <-NROW(commData)
 cat("# of comments: ", numComm) 
 gold <- sum(commData[,"gilded"])
 cat("# gold set to comments:", gold)
+
 commData$YearMonth <- format(as.Date(commData$created_pacific,"America/Los_Angeles"), "%Y-%m")
 commCountPerMonth <- count(commData,c( "YearMonth"))
+
+seattle_commData$YearMonth <- format(as.Date(seattle_commData$created_pacific,"America/Los_Angeles"), "%Y-%m")
+seattle_commCountPerMonth <- count(seattle_commData,c( "YearMonth"))
+
+plot_seattleWaCommCountPerMonth <- ggplot(data=commCountPerMonth, 
+                     aes(x=YearMonth,y=freq, fill=cbPalette[1:1], width=.75)) +
+  geom_bar(width=1,stat="identity") +
+  guides(fill=FALSE) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+plot_seattleCommCountPerMonth <- ggplot(data=seattle_commCountPerMonth, 
+                     aes(x=YearMonth,y=freq, fill=cbPalette[2:2])) +
+  geom_line(aes(group=1), size=2) +
+  guides(fill=FALSE) +
+  theme(panel.background = element_rect(fill = NA), 
+        panel.grid = element_blank()) + 
+  expand_limits(y=c(0))
+
+
+
+
+
+
+g1 <- ggplot_gtable(ggplot_build(plot_seattleWaCommCountPerMonth))
+g2 <- ggplot_gtable(ggplot_build(plot_seattleCommCountPerMonth))
+
+
+pp <- c(subset(g1$layout, name == "panel", se = t:r))
+g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name == "panel")]], pp$t, 
+                     pp$l, pp$b, pp$l)
+
+
+ia <- which(g2$layout$name == "axis-l")
+ga <- g2$grobs[[ia]]
+ax <- ga$children[[2]]
+ax$widths <- rev(ax$widths)
+ax$grobs <- rev(ax$grobs)
+ax$grobs[[1]]$x <- ax$grobs[[1]]$x - unit(1, "npc") + unit(0.15, "cm")
+g <- gtable_add_cols(g, g2$widths[g2$layout[ia, ]$l], length(g$widths) - 1)
+g <- gtable_add_grob(g, ax, pp$t, length(g$widths) - 1, pp$b)
+
+
+grid.draw(g)
