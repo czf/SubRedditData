@@ -3,6 +3,7 @@ library(ggplot2)
 library(plyr)
 library(gtable)
 library(grid)
+library(reshape2)
 
 bigQueryLink <-"https://bigquery.cloud.google.com/dataset/fh-bigquery:reddit_comments"
 begin <- "2017-01-01"
@@ -68,9 +69,14 @@ plot_seattleWaCommCountPerMonth <- ggplot(data=f,
   scale_y_continuous(sec.axis = sec_axis(~./1.5))
 
 
+#dual comment count
+dual <- data.frame(YearMonth = c(commCountPerMonth$YearMonth, seattle_commCountPerMonth$YearMonth), count = c(commCountPerMonth$freq, seattle_commCountPerMonth$freq), sub=c(rep("seattleWA", nrow(commCountPerMonth)), rep("seattle", nrow(seattle_commCountPerMonth))))
 
-
-
+ggplot(dual, aes(YearMonth, count)) + geom_bar(aes(fill = sub), 
+   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
+   theme(legend.position="top", legend.title = 
+   element_blank(),axis.title.x=element_blank(), 
+   axis.title.y=element_blank())
 
 
 #uniques
