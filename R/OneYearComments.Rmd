@@ -74,7 +74,26 @@ plot_seattleWaCommCountPerMonth <- ggplot(data=f,
 
 
 #uniques
-authorFrequencyYearMonth <- count(commData, c("YearMonth" , "author"))
-uniqueAuthorsYearMonth <- ddply(authorFrequencyYearMonth, ~YearMonth,nrow)
+uniqueAuthorsYearMonth <- ddply(commData, ~YearMonth, summarise, c = length(unique(author)))
 
-uniqueAuthorsYearMonth <- ddply(temp, ~YearMonth, summarise, c = length(unique(author)))
+#total gold by month
+goldByYearMonth <- ddply(commData, ~YearMonth,   summarize, s = sum(gilded))
+
+#RainerRancor score, count
+ddply(commData[commData$author=="RainierRancor",], ~YearMonth,   summarize, s = sum(score), c=length(author))
+
+#nimby
+ddply(commData[grep("NIMBies|NIMBY", commData$body,ignore.case = TRUE),], ~YearMonth,   summarize, s = sum(score), c=length(YearMonth) authors=length(unique(author)))
+
+#taco time
+ddply(commData[grep("\\btaco *time[s]?(nw)?\\b", commData$body,ignore.case = TRUE),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth), authors=length(unique(author)))
+
+
+#removed
+ddply(commData[grep("^\\[removed\\]", commData$body,ignore.case = TRUE),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth))
+
+#unique domains
+ddply(commData, ~YearMonth, summarise, c = length(unique(domain)))
+
+#Authors with most comments by year month?
+ddply(temp, ~YearMonth+author, summarise, c = length(author))
