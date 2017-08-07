@@ -9,6 +9,7 @@ begin <- "2017-01-01"
 end <- "2017-03-01"
 
 seattleWA_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
+other_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=seattle_subreddit;trusted_connection=true')
 
 query <- paste('select comment.*, post.domain, post.author as \'post_author\' 
 , post.link_flair_text 
