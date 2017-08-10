@@ -202,3 +202,8 @@ ggplot(tacoData, aes(YearMonth,authors)) + geom_bar(aes(fill = sub),
 authorCounts <- ddply(commData, ~YearMonth+author, summarise, c = length(author))
 
 authorCounts[( (authorCounts$YearMonth<'2016-10' & t$c>400   ) | t$c>500 )& t$author!='[deleted]',]
+
+ggplot(tacoData, aes(YearMonth,authors)) + geom_line(aes(fill = sub),
+   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
+   theme(legend.position="top") +
+  labs(x="",y="Number of Taco Time authors", fill="SubReddit", title="Total Comment Authors Refering to Taco Time by Month")
