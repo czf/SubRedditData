@@ -1,3 +1,11 @@
+---
+title: "Comment - One Year"
+author: "czf"
+date: ""
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, comment=NA)
 library(RODBC)
 library(ggplot2)
 library(plyr)
@@ -5,9 +13,12 @@ library(gtable)
 library(grid)
 library(reshape2)
 
+
+
+
 bigQueryLink <-"https://bigquery.cloud.google.com/dataset/fh-bigquery:reddit_comments"
 begin <- "2017-01-01"
-end <- "2017-03-01"
+end <- "2017-07-01"
 
 seattleWA_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
 other_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=seattle_subreddit;trusted_connection=true')
@@ -108,9 +119,10 @@ ggplot(commentRatio, aes(YearMonth, ratio)) + geom_bar(aes(fill = sub),
 
 #removed
 ```{r removed comments by mod}
-removed <- ddply(commData[grep("^\\[removed\\]", commData$body,ignore.case = TRUE),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth))
 
-other_removed <- ddply(other_commData[grep("^\\[removed\\]", other_commData$body,ignore.case = TRUE),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth))
+removed <- ddply(commData[with(commData, grepl("^\\[removed\\]", commData$body,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth))
+
+other_removed <- ddply(other_commData[with(other_commData, grepl("^\\[removed\\]", other_commData$body,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth))
 
 removedData <- data.frame(YearMonth = c(removed$YearMonth, other_removed$YearMonth), 
                    count = c(removed$c, other_removed$c),
@@ -158,8 +170,10 @@ ggplot(rrdata, aes(YearMonth,score)) + geom_bar(aes(fill = sub),
   labs(x="",y="Score", fill="SubReddit", title="Total RainerRancor Comment Score by Month")
 
 ```{r nimby}
-nimby <- ddply(commData[grep("NIMBies|NIMBY", commData$body,ignore.case = TRUE),], ~YearMonth,   summarize, s = sum(score), c=length(YearMonth), authors=length(unique(author)))
-other_nimby <- ddply(other_commData[grep("NIMBies|NIMBY", other_commData$body,ignore.case = TRUE),], ~YearMonth,   summarize, s = sum(score), c=length(YearMonth), authors=length(unique(author)))
+nimby <- ddply(commData[with(commData, grepl("NIMBies|NIMBY", commData$body,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c=length(YearMonth), authors=length(unique(author)))
+
+
+other_nimby <- ddply(other_commData[with(other_commData, grepl("NIMBies|NIMBY", other_commData$body,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c=length(YearMonth), authors=length(unique(author)))
 
 nimbyData <- data.frame(YearMonth=c(nimby$YearMonth,other_nimby$YearMonth),
                         count=c(nimby$c,other_nimby$c),
@@ -173,9 +187,13 @@ ggplot(nimbyData, aes(YearMonth,count)) + geom_bar(aes(fill = sub),
   labs(x="",y="Number of Comments", fill="SubReddit", title="Total Comments Refering to Nimby(s|ies) by Month")
 
 ```{r tacotime}
-tacoTime <- ddply(commData[grep("\\btaco *time[s]?(nw)?\\b", commData$body,ignore.case = TRUE),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth), authors=length(unique(author)))
 
-other_tacoTime <- ddply(other_commData[grep("\\btaco *time[s]?(nw)?\\b", other_commData$body,ignore.case = TRUE),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth), authors=length(unique(author)))
+
+tacoTime <- ddply(commData[with(commData, grepl("\\btaco *time[s]?(nw)?\\b", commData$body,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth), authors=length(unique(author)))
+
+
+
+other_tacoTime <- ddply(other_commData[with(other_commData, grepl("\\btaco *time[s]?(nw)?\\b", other_commData$body,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth), authors=length(unique(author)))
 
 tacoData <- data.frame(YearMonth = c(tacoTime$YearMonth, other_tacoTime$YearMonth), 
                    score = c(tacoTime$s, other_tacoTime$s),
@@ -198,12 +216,19 @@ ggplot(tacoData, aes(YearMonth,authors)) + geom_bar(aes(fill = sub),
 
 
 
-#Authors with most comments by year month?
+```{r Authors with most comments by year month, fig.width=6, fig.height=2.5}
+
 authorCounts <- ddply(commData, ~YearMonth+author, summarise, c = length(author))
 
-authorCounts[( (authorCounts$YearMonth<'2016-10' & t$c>400   ) | t$c>500 )& t$author!='[deleted]',]
+activeAuthors <- levels(
+                          authorCounts[( (authorCounts$YearMonth<'2016-10' & authorCounts$c>400   ) | authorCounts$c>500 )& authorCounts$author!='[deleted]',"author"][,drop=TRUE])
 
-ggplot(tacoData, aes(YearMonth,authors)) + geom_line(aes(fill = sub),
-   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
-   theme(legend.position="top") +
-  labs(x="",y="Number of Taco Time authors", fill="SubReddit", title="Total Comment Authors Refering to Taco Time by Month")
+
+p <- ggplot(data=authorCounts[authorCounts$author %in% activeAuthors,],
+            aes(x=YearMonth, y=c, group =author, shape=author, colour=author)) + geom_line() + geom_point() +  
+    labs(x="",y="Number of Comments", title="Total Comments by an Author by Month" )+
+    scale_colour_discrete(name  ="Author", breaks=activeAuthors, labels=activeAuthors) +
+    scale_shape_manual(values=seq(0,12), name="Author")
+
+
+
