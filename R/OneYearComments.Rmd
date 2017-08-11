@@ -1,7 +1,7 @@
 ---
 title: "Comment - One Year"
 author: "czf"
-date: ""
+date: "August 2017"
 output: html_document
 ---
 ```{r setup, include=FALSE}
@@ -17,7 +17,7 @@ library(reshape2)
 
 
 bigQueryLink <-"https://bigquery.cloud.google.com/dataset/fh-bigquery:reddit_comments"
-begin <- "2017-01-01"
+begin <- "2016-07-01"
 end <- "2017-07-01"
 
 seattleWA_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
@@ -36,6 +36,11 @@ other_commData <- sqlQuery(other_dbhandle, query)
 
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+```
+### Synopsis 
+This is visualizing comment data from the Seattle and SeattleWA subreddit over the course of 12 months.  The data was taken from https://bigquery.cloud.google.com/table/fh-bigquery:reddit_comments
+
 
 ```{r comments}
 numComm <-NROW(commData)
@@ -216,7 +221,7 @@ ggplot(tacoData, aes(YearMonth,authors)) + geom_bar(aes(fill = sub),
 
 
 
-```{r Authors with most comments by year month, fig.width=6, fig.height=2.5}
+```{r Authors with most comments by year month, fig.width=13, fig.height=9}
 
 authorCounts <- ddply(commData, ~YearMonth+author, summarise, c = length(author))
 
@@ -224,11 +229,8 @@ activeAuthors <- levels(
                           authorCounts[( (authorCounts$YearMonth<'2016-10' & authorCounts$c>400   ) | authorCounts$c>500 )& authorCounts$author!='[deleted]',"author"][,drop=TRUE])
 
 
-p <- ggplot(data=authorCounts[authorCounts$author %in% activeAuthors,],
-            aes(x=YearMonth, y=c, group =author, shape=author, colour=author)) + geom_line() + geom_point() +  
+ggplot(data=authorCounts[authorCounts$author %in% activeAuthors,],
+          aes(x=YearMonth, y=c, group =author, shape=author, colour=author)) + geom_line(size=1.1) + geom_point(size=3) +  
     labs(x="",y="Number of Comments", title="Total Comments by an Author by Month" )+
     scale_colour_discrete(name  ="Author", breaks=activeAuthors, labels=activeAuthors) +
     scale_shape_manual(values=seq(0,12), name="Author")
-
-
-
