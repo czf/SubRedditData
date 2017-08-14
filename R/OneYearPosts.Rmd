@@ -5,7 +5,7 @@ date: "August 2017"
 output: html_document
 ---
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo=FALSE, comment=NA)
+knitr::opts_chunk$set(echo=FALSE, postent=NA)
 library(RODBC)
 library(ggplot2)
 library(plyr)
@@ -32,16 +32,13 @@ end <- "2017-07-01"
 seattleWA_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
 other_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=seattle_subreddit;trusted_connection=true')
 
-query <- paste('select comment.*, post.domain, post.author as \'post_author\' 
-, post.link_flair_text 
-from comment
-inner join post on replace(comment.link_id,\'t3_\',\'\') = post.id
-                where comment.created_pacific <
+query <- paste('select * from post p
+                where p.created_pacific <
 \'',end ,'\'
-and comment.created_pacific >=\'', begin,'\'', sep="")
+and p.created_pacific >=\'', begin,'\'', sep="")
 
-commData <- sqlQuery(seattleWA_dbhandle, query)
-other_commData <- sqlQuery(other_dbhandle, query)
+postData <- sqlQuery(seattleWA_dbhandle, query)
+other_postData <- sqlQuery(other_dbhandle, query)
 
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -49,9 +46,44 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 ```
 
 
+```{r posts}
+numPost <-NROW(postData)
+cat("# of posts: ", numPost) 
+gold <- sum(postData[,"gilded"])
+cat("# gold set to Posts:", gold)
 
-#unique domains
-```{r query, cache=TRUE}
+postData$YearMonth <- format(as.Date(postData$created_pacific,"America/Los_Angeles"), "%Y-%m")
+other_postData$YearMonth <- format(as.Date(other_postData$created_pacific,"America/Los_Angeles"), "%Y-%m")
+
+postCountPerMonth <- count(postData,c( "YearMonth"))
+other_postCountPerMonth <- count(other_postData,c( "YearMonth"))
+
+
+
+# f <- data.frame(YearMonth=postCountPerMonth$YearMonth, seattle=other_postCountPerMonth$freq, seattleWA=postCountPerMonth$freq)
+# 
+# plot_seattleWaPostCountPerMonth <- ggplot(data=f, 
+#                      aes(x=YearMonth,y=seattleWA, fill=cbPalette[1:1], width=.75)) +
+#   geom_bar(width=1,stat="identity") +
+#   guides(fill=FALSE) +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+#   geom_line(aes(y=seattle*1.5, group=1), size=1.1) + 
+#   scale_y_continuous(sec.axis = sec_axis(~./1.5)) +
+#   labs(x="",y="Number of Posts", fill="SubReddit", title="Total Posts by Month")
+# 
+# 
+# plot_seattleWaPostCountPerMonth
+dual <- data.frame(YearMonth = c(postCountPerMonth$YearMonth, other_postCountPerMonth$YearMonth), count = c(postCountPerMonth$freq, other_postCountPerMonth$freq), sub=c(rep("seattleWA", nrow(postCountPerMonth)), rep("seattle", nrow(other_postCountPerMonth))),stringsAsFactors = FALSE)
+
+ggplot(dual, aes(YearMonth, count)) + geom_bar(aes(fill = sub), 
+   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
+   theme(legend.position="top") +
+  labs(x="",y="Number of Posts", fill="SubReddit", title="Total Posts by Month")
+
+
+```
+<hr/>
+```{r unique domains, cache=TRUE}
 domains <- ddply(postData, ~YearMonth, summarise, c = length(unique(domain)))
 other_domains <- ddply(other_postData, ~YearMonth, summarise, c = length(unique(domain)))
 
@@ -67,15 +99,7 @@ ggplot(domainData, aes(YearMonth, count)) + geom_bar(aes(fill = sub),
 
 
 
-postData <- sqlQuery(seattleWA_dbhandle, query)
-other_postData <- sqlQuery(other_dbhandle, query)
 
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ```
-
-```{r posts}
-numPost <-NROW(postData)
-cat("# of posts: ", numPost) 
-gold <- sum(PostData[,"gilded"])
-cat("# gold set to Posts:", gold)
