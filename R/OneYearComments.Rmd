@@ -12,9 +12,17 @@ library(plyr)
 library(gtable)
 library(grid)
 library(reshape2)
-
-
-
+```
+<style>
+hr{
+background-color:black;
+height:1px;
+}
+img{
+max-width:initial;
+}
+</style>
+```{r query, cache=TRUE}
 
 bigQueryLink <-"https://bigquery.cloud.google.com/dataset/fh-bigquery:reddit_comments"
 begin <- "2016-07-01"
@@ -38,8 +46,9 @@ other_commData <- sqlQuery(other_dbhandle, query)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 ```
-### Synopsis 
+### Synopsis
 This is visualizing comment data from the Seattle and SeattleWA subreddit over the course of 12 months.  The data was taken from https://bigquery.cloud.google.com/table/fh-bigquery:reddit_comments
+<hr/>
 
 
 ```{r comments}
@@ -48,6 +57,8 @@ cat("# of comments: ", numComm)
 gold <- sum(commData[,"gilded"])
 cat("# gold set to comments:", gold)
 
+
+  
 commData$YearMonth <- format(as.Date(commData$created_pacific,"America/Los_Angeles"), "%Y-%m")
 commCountPerMonth <- count(commData,c( "YearMonth"))
 
@@ -82,8 +93,16 @@ plot_seattleWaCommCountPerMonth <- ggplot(data=f,
   guides(fill=FALSE) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   geom_line(aes(y=seattle*1.5, group=1), size=1.1) + 
-  scale_y_continuous(sec.axis = sec_axis(~./1.5))
+  scale_y_continuous(sec.axis = sec_axis(~./1.5)) +
+  labs(x="",y="Number of Comments", fill="SubReddit", title="Total Comments by Month")
 
+
+plot_seattleWaCommCountPerMonth
+```
+
+
+The left axis is SeattleWA comment count for the red bars and the right axis is Seattle comment count for the black line.  This graph and the second are the same data but visualized differently. I was hoping to do more dual axis graphs like the first but, from what I found, R doesn't really do them very well.  
+<hr/>
 
 ```{r comment count }
 dual <- data.frame(YearMonth = c(commCountPerMonth$YearMonth, other_commCountPerMonth$YearMonth), count = c(commCountPerMonth$freq, other_commCountPerMonth$freq), sub=c(rep("seattleWA", nrow(commCountPerMonth)), rep("seattle", nrow(other_commCountPerMonth))),stringsAsFactors = FALSE)
@@ -92,6 +111,11 @@ ggplot(dual, aes(YearMonth, count)) + geom_bar(aes(fill = sub),
    width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
    theme(legend.position="top") +
   labs(x="",y="Number of Comments", fill="SubReddit", title="Total Comments by Month")
+
+```
+
+<hr/>
+
 
 
 ```{r unique authors}
@@ -109,7 +133,8 @@ ggplot(uniques, aes(YearMonth, count)) + geom_bar(aes(fill = sub),
    theme(legend.position="top") +
   labs(x="",y="Number of Unique Comment Authors", fill="SubReddit", title="Total Unique Comment Authors by Month")
 
-
+```
+<hr/>
 
 ```{r ratio comment to unique authors}
 commentRatio <- data.frame(YearMonth = dual[order(dual$sub, dual$YearMonth),"YearMonth"], 
@@ -122,7 +147,10 @@ ggplot(commentRatio, aes(YearMonth, ratio)) + geom_bar(aes(fill = sub),
   labs(x="",y="Number of Comments", fill="SubReddit", title="Ratio: Comments to Author")
 
 
-#removed
+
+```
+<hr/>
+
 ```{r removed comments by mod}
 
 removed <- ddply(commData[with(commData, grepl("^\\[removed\\]", commData$body,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth))
@@ -139,7 +167,8 @@ ggplot(removedData, aes(YearMonth,count)) + geom_bar(aes(fill = sub),
   labs(x="",y="Number of comments removed by Mods", fill="SubReddit", title="Total Comments Removed by Mods by Month")
 
 
-
+```
+<hr/>
 ```{r comment gold by month}
 goldByYearMonth <- ddply(commData, ~YearMonth,   summarize, s = sum(gilded))
 other_goldByYearMonth <- ddply(other_commData, ~YearMonth,   summarize, s = sum(gilded))
@@ -153,8 +182,10 @@ ggplot(gold, aes(YearMonth, sum)) + geom_bar(aes(fill = sub),
    theme(legend.position="top") +
   labs(x="",y="Amount of Gold", fill="SubReddit", title="Total Comment Gold by Month")
 
+```
+<hr/>
 
-```{r RainerRancor score by month}
+```{r RainerRancor comments by month}
 RR <- ddply(commData[commData$author=="RainierRancor",], ~YearMonth,   summarize, s = sum(score), c=length(author))
 other_RR <-ddply(other_commData[other_commData$author=="RainierRancor",], ~YearMonth,   summarize, s = sum(score), c=length(author))
 
@@ -168,12 +199,17 @@ ggplot(rrdata, aes(YearMonth,count)) + geom_bar(aes(fill = sub),
    width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
    theme(legend.position="top") +
   labs(x="",y="Number of Comments", fill="SubReddit", title="Total RainerRancor Comments by Month")
-
+```
+<hr/>
+```{r RainerRancor score by Month}
 ggplot(rrdata, aes(YearMonth,score)) + geom_bar(aes(fill = sub),
    width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
    theme(legend.position="top") +
   labs(x="",y="Score", fill="SubReddit", title="Total RainerRancor Comment Score by Month")
 
+
+```
+<hr/>
 ```{r nimby}
 nimby <- ddply(commData[with(commData, grepl("NIMBies|NIMBY", commData$body,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c=length(YearMonth), authors=length(unique(author)))
 
@@ -191,7 +227,9 @@ ggplot(nimbyData, aes(YearMonth,count)) + geom_bar(aes(fill = sub),
    theme(legend.position="top") +
   labs(x="",y="Number of Comments", fill="SubReddit", title="Total Comments Refering to Nimby(s|ies) by Month")
 
-```{r tacotime}
+```
+<hr/>
+```{r tacotime comments}
 
 
 tacoTime <- ddply(commData[with(commData, grepl("\\btaco *time[s]?(nw)?\\b", commData$body,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth), authors=length(unique(author)))
@@ -210,18 +248,18 @@ ggplot(tacoData, aes(YearMonth,count)) + geom_bar(aes(fill = sub),
    width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
    theme(legend.position="top") +
   labs(x="",y="Number of Taco Time references", fill="SubReddit", title="Total Comments Refering to Taco Time by Month")
-
+```
+<hr/>
+```{r tacotime authors}
 ggplot(tacoData, aes(YearMonth,authors)) + geom_bar(aes(fill = sub),
    width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
    theme(legend.position="top") +
   labs(x="",y="Number of Taco Time authors", fill="SubReddit", title="Total Comment Authors Refering to Taco Time by Month")
 
-
-
-
-
-
-```{r Authors with most comments by year month, fig.width=13, fig.height=9}
+```
+<hr/>
+  
+```{r Authors with most comments by year month, fig.width=13, fig.height=9, out.height="1820px", out.width="1260px"}
 
 authorCounts <- ddply(commData, ~YearMonth+author, summarise, c = length(author))
 
@@ -233,4 +271,6 @@ ggplot(data=authorCounts[authorCounts$author %in% activeAuthors,],
           aes(x=YearMonth, y=c, group =author, shape=author, colour=author)) + geom_line(size=1.1) + geom_point(size=3) +  
     labs(x="",y="Number of Comments", title="Total Comments by an Author by Month" )+
     scale_colour_discrete(name  ="Author", breaks=activeAuthors, labels=activeAuthors) +
-    scale_shape_manual(values=seq(0,12), name="Author")
+    scale_shape_manual(values=seq(0,12), name="Author") + 
+    theme_grey(base_size = 15)
+```
