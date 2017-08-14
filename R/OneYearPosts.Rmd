@@ -1,27 +1,33 @@
-#unique domains
-domains <- ddply(postData, ~YearMonth, summarise, c = length(unique(domain)))
-other_domains <- ddply(other_postData, ~YearMonth, summarise, c = length(unique(domain)))
-
-domainData <- data.frame(YearMonth = c(domains$YearMonth, other_domains$YearMonth), 
-                   count = c(domains$c, other_domains$c),
-                   sub = c(rep("SeattleWA",nrow(domains)), rep("seattle", nrow(other_domains))))
-
-ggplot(domainData, aes(YearMonth, count)) + geom_bar(aes(fill = sub), 
-   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
-   theme(legend.position="top") +
-  labs(x="",y="Number of Unique Post Domains", fill="SubReddit", title="Total Unique Post Domains by Month")
-  
-  
-  library(RODBC)
+---
+title: "Post - One Year"
+author: "czf"
+date: "August 2017"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, comment=NA)
+library(RODBC)
 library(ggplot2)
 library(plyr)
 library(gtable)
 library(grid)
 library(reshape2)
+```
+<style>
+hr{
+background-color:black;
+height:1px;
+}
+img{
+max-width:initial;
+}
+</style>
+```{r query, cache=TRUE}
 
-bigQueryLink <-"https://bigquery.cloud.google.com/dataset/fh-bigquery:reddit_comments"
-begin <- "2017-01-01"
-end <- "2017-03-01"
+
+BigQueryLink <-"https://bigquery.cloud.google.com/dataset/fh-bigquery:reddit_posts"
+begin <- "2016-07-01"
+end <- "2017-07-01"
 
 seattleWA_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=SeattleWA_subreddit;trusted_connection=true')
 other_dbhandle <- odbcDriverConnect('driver={SQL Server};server=localhost\\SQLEXPRESS;database=seattle_subreddit;trusted_connection=true')
@@ -39,6 +45,34 @@ other_commData <- sqlQuery(other_dbhandle, query)
 
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+```
+
+
+
+#unique domains
+```{r query, cache=TRUE}
+domains <- ddply(postData, ~YearMonth, summarise, c = length(unique(domain)))
+other_domains <- ddply(other_postData, ~YearMonth, summarise, c = length(unique(domain)))
+
+domainData <- data.frame(YearMonth = c(domains$YearMonth, other_domains$YearMonth), 
+                   count = c(domains$c, other_domains$c),
+                   sub = c(rep("SeattleWA",nrow(domains)), rep("seattle", nrow(other_domains))))
+
+ggplot(domainData, aes(YearMonth, count)) + geom_bar(aes(fill = sub), 
+   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
+   theme(legend.position="top") +
+  labs(x="",y="Number of Unique Post Domains", fill="SubReddit", title="Total Unique Post Domains by Month")
+  
+
+
+
+postData <- sqlQuery(seattleWA_dbhandle, query)
+other_postData <- sqlQuery(other_dbhandle, query)
+
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+```
 
 ```{r posts}
 numPost <-NROW(postData)
