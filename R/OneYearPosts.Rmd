@@ -44,7 +44,8 @@ other_postData <- sqlQuery(other_dbhandle, query)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 ```
-
+### Synopsis
+This is visualizing post data from the Seattle and SeattleWA subreddit over the course of 12 months.  The data was taken from https://bigquery.cloud.google.com/table/fh-bigquery:reddit_posts
 
 ```{r posts}
 numPost <-NROW(postData)
@@ -80,10 +81,77 @@ ggplot(dual, aes(YearMonth, count)) + geom_bar(aes(fill = sub),
    theme(legend.position="top") +
   labs(x="",y="Number of Posts", fill="SubReddit", title="Total Posts by Month")
 
+```
+<hr/>
+
+```{r unique authors}
+uniqueAuthorsYearMonth <- ddply(postData, ~YearMonth, summarise, c = length(unique(author)))
+other_uniqueAuthorsYearMonth <- ddply(other_postData, ~YearMonth, summarise, c = length(unique(author)))
+
+uniques <- data.frame(YearMonth = c(uniqueAuthorsYearMonth$YearMonth, other_uniqueAuthorsYearMonth$YearMonth), 
+                      count = c(uniqueAuthorsYearMonth$c, other_uniqueAuthorsYearMonth$c),
+                      sub=c(rep("SeattleWA", nrow(uniqueAuthorsYearMonth)), 
+                            rep("seattle", nrow(other_uniqueAuthorsYearMonth))),
+                      stringsAsFactors = FALSE)
+
+ggplot(uniques, aes(YearMonth, count)) + geom_bar(aes(fill = sub), 
+   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
+   theme(legend.position="top") +
+  labs(x="",y="Number of Unique Post Authors", fill="SubReddit", title="Total Unique Post Authors by Month")
 
 ```
 <hr/>
-```{r unique domains, cache=TRUE}
+
+```{r ratio post to unique authors}
+postRatio <- data.frame(YearMonth = dual[order(dual$sub, dual$YearMonth),"YearMonth"], 
+           ratio = dual[order(dual$sub,dual$YearMonth), "count"]/uniques[order(uniques$sub, uniques$YearMonth),"count"],
+           sub = dual[order(dual$sub, dual$YearMonth),"sub"])
+
+ggplot(postRatio, aes(YearMonth, ratio)) + geom_bar(aes(fill = sub), 
+   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
+   theme(legend.position="top") +
+  labs(x="",y="Number of Posts", fill="SubReddit", title="Ratio: Posts to Author")
+
+
+
+```
+<hr/>
+
+```{r removed posts by mod}
+
+removed <- ddply(postData[with(postData, grepl("^\\[removed\\]", postData$selftext,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth))
+
+other_removed <- ddply(other_postData[with(other_postData, grepl("^\\[removed\\]", other_postData$selftext,ignore.case = TRUE)),], ~YearMonth,   summarize, s = sum(score), c = length(YearMonth))
+
+removedData <- data.frame(YearMonth = c(removed$YearMonth, other_removed$YearMonth), 
+                   count = c(removed$c, other_removed$c),
+                   sub = c(rep("SeattleWA",nrow(removed)), rep("seattle", nrow(other_removed))))
+
+ggplot(removedData, aes(YearMonth,count)) + geom_bar(aes(fill = sub),
+   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
+   theme(legend.position="top") +
+  labs(x="",y="Number of posts removed by Mods", fill="SubReddit", title="Total Posts Removed by Mods by Month")
+
+
+```
+<hr/>
+```{r post gold by month}
+goldByYearMonth <- ddply(postData, ~YearMonth,   summarize, s = sum(gilded))
+other_goldByYearMonth <- ddply(other_postData, ~YearMonth,   summarize, s = sum(gilded))
+
+gold <- data.frame(YearMonth = c(goldByYearMonth$YearMonth, other_goldByYearMonth$YearMonth), 
+                   sum = c(goldByYearMonth$s, other_goldByYearMonth$s),
+                   sub = c(rep("SeattleWA",nrow(goldByYearMonth)), rep("seattle", nrow(other_goldByYearMonth))))
+
+ggplot(gold, aes(YearMonth, sum)) + geom_bar(aes(fill = sub), 
+   width = 0.4, position = position_dodge(width=0.5), stat="identity") +  
+   theme(legend.position="top") +
+  labs(x="",y="Amount of Gold", fill="SubReddit", title="Total Post Gold by Month")
+
+```
+<hr/>
+
+```{r unique domains}
 domains <- ddply(postData, ~YearMonth, summarise, c = length(unique(domain)))
 other_domains <- ddply(other_postData, ~YearMonth, summarise, c = length(unique(domain)))
 
@@ -96,10 +164,33 @@ ggplot(domainData, aes(YearMonth, count)) + geom_bar(aes(fill = sub),
    theme(legend.position="top") +
   labs(x="",y="Number of Unique Post Domains", fill="SubReddit", title="Total Unique Post Domains by Month")
   
-
-
-
-
-
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ```
+<hr/>
+```{r Authors with most posts by year month log base 2,, fig.width=13, fig.height=9, out.height="1820px", out.width="1260px"}
+
+authorCounts <- ddply(postData, ~YearMonth+author, summarise, c = length(author))
+
+activeAuthors <- levels(
+                          authorCounts[( (authorCounts$YearMonth=='2016-07' & authorCounts$c>25   )  | 
+                                             authorCounts$c>30 )& authorCounts$author!='[deleted]',"author"][,drop=TRUE])
+
+
+ggplot(data=authorCounts[authorCounts$author %in% activeAuthors,],
+          aes(x=YearMonth, y=log(c,10), group =author, shape=author, colour=author)) + geom_line(size=1.1) + geom_point(size=3) +  
+    labs(x="",y="Number of Posts Log base 2", title="Total Posts by an Author by Month" )+
+    scale_colour_discrete(name  ="Author", breaks=activeAuthors, labels=activeAuthors) +
+    scale_shape_manual(values=seq(0,15), name="Author") + 
+    theme_grey(base_size = 15)
+
+```
+The graph above is using log base 2 for the y axis due to one author having a large amount of posts.  The following graph is the same data but without that transformation.
+<hr/>
+```{r authors with most posts no transform, out.width="100%"}
+ggplot(data=authorCounts[authorCounts$author %in% activeAuthors,],
+          aes(x=YearMonth, y=c, group =author, shape=author, colour=author)) + geom_line(size=1) + geom_point(size=2) +  
+    labs(x="",y="Number of Posts", title="Total Posts by an Author by Month" )+
+    scale_colour_discrete(name  ="Author", breaks=activeAuthors, labels=activeAuthors) +
+    scale_shape_manual(values=seq(0,15), name="Author") +
+    theme(text = element_text(size=8))
+```
+

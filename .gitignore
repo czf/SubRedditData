@@ -249,3 +249,10 @@ R/TacoTimeComments_cache/html/charts_1a811d92d56ae8d5d4d168299db48f1f.rdx
 *.rdx
 R/TacoTimeComments_cache/html/__packages
 R/TacoTimeComments_files/figure-html/charts-1.png
+/R/TacoTimeComments_cache
+/R/TacoTimeComments_files
+/R/OneYearComments_cache
+/R/OneYearComments_files
+/R/OneYearPosts_cache
+/R/OneYearPosts_files
+/R/rsconnect
